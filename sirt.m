@@ -15,7 +15,7 @@ Y_grid = X_grid;
 thetas = deg2rad(0:projection_angle_step_size:360-projection_angle_step_size); 
 gammas = deg2rad(-0.5*FOV:angle_between_detectors:0.5*FOV); 
 L_gammas = length(gammas);
-f = randi(50,RowNumber_I*ColumnNumber_I,1);
+f = rand(RowNumber_I*ColumnNumber_I,1);
 
 for iter = 1:n_iter
     for angle = 1:length(thetas)
@@ -78,7 +78,10 @@ for iter = 1:n_iter
             f = update_eqn(W,f,PROJECTIONS(ray, angle));
         end
     end
+    IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
+    imagesc(IMAGE); colormap gray
+    hold on 
+    drawnow
     display(['Iteration ',num2str(iter),' compeleted.'])
 end
-IMAGE = reshape(f,RowNumber_I,ColumnNumber_I);
 end
