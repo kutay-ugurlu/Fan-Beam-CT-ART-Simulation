@@ -1,5 +1,6 @@
-function f_next = update_eqn(w,f,p)
-f_next = f - (f'*w - p)*w/(w'*w);
+function [f_next, delta_f, f] = update_eqn(w,f,p)
+delta_f = - (f'*w - p)*w/(w'*w);
+f_next = f + delta_f;
 end
 
 
