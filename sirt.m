@@ -21,6 +21,7 @@ f = rand(RowNumber_I*ColumnNumber_I,1);
 
 for iter = 1:n_iter
     Deltas = zeros(size(f));
+    Counter = Deltas;
     for angle = 1:L_thetas
         theta = thetas(angle);
         for ray = 1:L_gammas
@@ -80,9 +81,10 @@ for iter = 1:n_iter
             W(LEXI) = weights;
             [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle));
             Deltas = Deltas + delta_f;
+            Counter = Counter + ~(delta_f==0);
         end
     end
-    DELTA_f = Deltas / (L_thetas*L_gammas);
+    DELTA_f = Deltas ./ Counter;
     f = f + DELTA_f;
     IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
     imagesc(mat2gray(IMAGE)); colormap gray
