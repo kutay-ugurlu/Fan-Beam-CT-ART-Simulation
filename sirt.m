@@ -2,7 +2,8 @@
 % Inputs : Size of the image, Projection matrix.
 % Outputs : Image
 
-function [IMAGE] = sirt(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, N_detectors, n_iter)
+function [IMAGE] = sirt(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter)
+N_detectors = size(PROJECTIONS,1);
 total_number_of_projections = size(PROJECTIONS,2);
 projection_angle_step_size = 360 / total_number_of_projections;
 D = source2det_dist*0.5;
@@ -76,12 +77,13 @@ for iter = 1:n_iter
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
             f = update_eqn(W,f,PROJECTIONS(ray, angle));
+
         end
     end
-    IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
-    imagesc(IMAGE); colormap gray
-    hold on 
-    drawnow
-    display(['Iteration ',num2str(iter),' compeleted.'])
+IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
+imagesc(mat2gray(IMAGE)); colormap gray
+sgtitle({['Iteration ',num2str(iter),' completed.']})
+hold on 
+drawnow
 end
 end
