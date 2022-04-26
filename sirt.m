@@ -16,10 +16,12 @@ Y_grid = X_grid;
 thetas = deg2rad(0:projection_angle_step_size:360-projection_angle_step_size); 
 gammas = deg2rad(-0.5*FOV:angle_between_detectors:0.5*FOV); 
 L_gammas = length(gammas);
+L_thetas = length(thetas);
 f = rand(RowNumber_I*ColumnNumber_I,1);
 
 for iter = 1:n_iter
-    for angle = 1:length(thetas)
+    Deltas = zeros(size(f));
+    for angle = 1:L_thetas
         theta = thetas(angle);
         for ray = 1:L_gammas
             gamma = gammas(ray);   
@@ -76,14 +78,16 @@ for iter = 1:n_iter
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
-            f = update_eqn(W,f,PROJECTIONS(ray, angle));
-
+            [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle));
+            Deltas = Deltas + delta_f;
         end
     end
-IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
-imagesc(mat2gray(IMAGE)); colormap gray
-sgtitle({['Iteration ',num2str(iter),' completed.']})
-hold on 
-drawnow
+    DELTA_f = Deltas / (L_thetas*L_gammas);
+    f = f + DELTA_f;
+    IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
+    imagesc(mat2gray(IMAGE)); colormap gray
+    sgtitle({['Iteration ',num2str(iter),' completed.']})
+    hold on 
+    drawnow
 end
 end
