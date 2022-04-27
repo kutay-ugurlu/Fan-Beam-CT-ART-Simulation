@@ -2,7 +2,7 @@
 % Inputs : Size of the image, Projection matrix.
 % Outputs : Image
 
-function [IMAGE] = sirt(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter)
+function [IMAGE] = art(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter)
 N_detectors = size(PROJECTIONS,1);
 total_number_of_projections = size(PROJECTIONS,2);
 projection_angle_step_size = 360 / total_number_of_projections;
@@ -76,7 +76,7 @@ for iter = 1:n_iter
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
-            [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle));
+            [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),0.5);
         end
     end
     %% Reshape and plot

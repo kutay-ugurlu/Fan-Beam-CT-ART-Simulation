@@ -2,7 +2,7 @@
 % Inputs : Size of the image, Projection matrix.
 % Outputs : Image
 
-function [IMAGE] = sirt(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter)
+function [IMAGE] = binary_weighted_art(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter, show_plot)
 N_detectors = size(PROJECTIONS,1);
 total_number_of_projections = size(PROJECTIONS,2);
 projection_angle_step_size = 360 / total_number_of_projections;
@@ -12,7 +12,9 @@ angle_between_detectors = FOV / (N_detectors-1);
 left_end = -0.5*RowNumber_I;
 right_end = -1 * left_end;
 X_grid = left_end : right_end;
+X_centers = 0.5*movsum(X_grid,2,'Endpoints','discard');
 Y_grid = X_grid;
+Y_centers = 0.5*movsum(Y_grid,2,'Endpoints','discard'); 
 thetas = deg2rad(0:projection_angle_step_size:360-projection_angle_step_size); 
 gammas = deg2rad(-0.5*FOV:angle_between_detectors:0.5*FOV); 
 L_gammas = length(gammas);
@@ -20,8 +22,9 @@ L_thetas = length(thetas);
 f = rand(RowNumber_I*ColumnNumber_I,1);
 
 for iter = 1:n_iter
-    Deltas = zeros(size(f));
-    Counter = Deltas;
+    if mod(n_iter,10) == 0
+        display(['At iteration ',num2str(iter)])
+    end
     for angle = 1:L_thetas
         theta = thetas(angle);
         for ray = 1:L_gammas
@@ -68,28 +71,39 @@ for iter = 1:n_iter
             % are sliced.
             % This block of code is problematic when there is 1 intersection. 
             % Hence, if block above is added.
-            midpoints_y = midpoints_y(2:end); 
             midpoints_x = midpoints_x(2:end);
+            midpoints_y = midpoints_y(2:end); 
             
-            %%
-            % The pixels that beam passes through are found.
+            %% Now off-center intersections are to be discarded
+            x_idx = ismembertol(midpoints_x, X_centers,0.01);
+            y_idx = ismembertol(midpoints_y, Y_centers,0.01);
+            both_idx = x_idx & y_idx;
+
+            if sum(both_idx) == 0 
+                continue 
+            end
+            
+            %% Now update weights
+            weights = both_idx;
+
+            %% The pixels that beam passes through are found.
             row_pixel_indices = right_end - floor(midpoints_y);
             column_pixel_indices = right_end + ceil(midpoints_x);
             PIXELS = [row_pixel_indices column_pixel_indices];
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
-            [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),1);
-            Deltas = Deltas + delta_f;
-            Counter = Counter + ~(delta_f==0);
+            [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),0.5);
         end
     end
-    DELTA_f = Deltas ./ Counter;
-    f = f + DELTA_f;
-    IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
-    imagesc(mat2gray(IMAGE)); colormap gray
-    sgtitle({['Iteration ',num2str(iter),' completed.']})
-    hold on 
-    drawnow
+    %% Reshape and plot
+    if show_plot
+        IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
+        imagesc(mat2gray(IMAGE)); colormap gray
+        sgtitle({['Iteration ',num2str(iter),' completed.']})
+        hold on 
+        drawnow
+    end
 end
+IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
 end
