@@ -75,8 +75,8 @@ for iter = 1:n_iter
             midpoints_y = midpoints_y(2:end); 
             
             %% Now off-center intersections are to be discarded
-            x_idx = ismembertol(midpoints_x, X_centers,0.01);
-            y_idx = ismembertol(midpoints_y, Y_centers,0.01);
+            x_idx = ismembertol(midpoints_x, X_centers,0.5);
+            y_idx = ismembertol(midpoints_y, Y_centers,0.5);
             both_idx = x_idx & y_idx;
 
             if sum(both_idx) == 0 
