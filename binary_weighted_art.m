@@ -2,7 +2,14 @@
 % Inputs : Size of the image, Projection matrix.
 % Outputs : Image
 
-function [IMAGE] = binary_weighted_art(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter, show_plot)
+function [IMAGE, errors] = binary_weighted_art(RowNumber_I, ColumnNumber_I, PROJECTIONS, ...
+    L_detector, source2det_dist, n_iter, show_plot, Original_Image, patience, axes)
+
+if nargin<10
+    axes = gca;
+end
+
+errors = [];
 N_detectors = size(PROJECTIONS,1);
 total_number_of_projections = size(PROJECTIONS,2);
 projection_angle_step_size = 360 / total_number_of_projections;
@@ -97,13 +104,23 @@ for iter = 1:n_iter
         end
     end
     %% Reshape and plot
-    if show_plot
-        IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
-        imagesc(mat2gray(IMAGE)); colormap gray
+
+    IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
+
+    if show_plot 
+        imagesc(IMAGE,'Parent',axes); colormap gray
         sgtitle({['Iteration ',num2str(iter),' completed.']})
         hold on 
         drawnow
     end
+
+    errors(end+1) = reconstruction_error(Original_Image,IMAGE);
+
+    if early_stopper(errors,patience)
+        display(['Early stopping at iteration ,',num2str(iter)])
+        return
+    end
+
 end
 IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
 end

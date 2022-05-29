@@ -2,7 +2,12 @@
 % Inputs : Size of the image, Projection matrix.
 % Outputs : Image
 
-function [IMAGE] = sirt(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter)
+function [IMAGE, errors] = sirt(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter, show_plot, Original_Image, patience, axes)
+
+if nargin<10
+    axes = gca;
+end
+
 N_detectors = size(PROJECTIONS,1);
 total_number_of_projections = size(PROJECTIONS,2);
 projection_angle_step_size = 360 / total_number_of_projections;
@@ -18,6 +23,7 @@ gammas = deg2rad(-0.5*FOV:angle_between_detectors:0.5*FOV);
 L_gammas = length(gammas);
 L_thetas = length(thetas);
 f = rand(RowNumber_I*ColumnNumber_I,1);
+errors = [];
 
 for iter = 1:n_iter
     Deltas = zeros(size(f));
@@ -84,12 +90,24 @@ for iter = 1:n_iter
             Counter = Counter + ~(delta_f==0);
         end
     end
+
     DELTA_f = Deltas ./ Counter;
     f = f + DELTA_f;
-    IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
-    imagesc(mat2gray(IMAGE)); colormap gray
-    sgtitle({['Iteration ',num2str(iter),' completed.']})
-    hold on 
-    drawnow
+    IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
+
+    if show_plot 
+        imagesc(IMAGE,'Parent',axes); colormap gray
+        sgtitle({['Iteration ',num2str(iter),' completed.']})
+        hold on 
+        drawnow
+    end
+
+    errors(end+1) = reconstruction_error(Original_Image,IMAGE);
+
+    if early_stopper(errors,patience)
+        display(['Early stopping at iteration ,',num2str(iter)])
+        return
+    end
+
 end
 end
