@@ -77,14 +77,15 @@ for iter = 1:n_iter
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
             [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),0.5);
+
         end
-        %% Reshape and plot
-        IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
-        imagesc(mat2gray(IMAGE)); colormap gray
-        sgtitle({['Iteration ',num2str(iter),' completed.']})
-        hold on 
-        drawnow
     end
+     %% Reshape and plot
+    IMAGE = reshape(f,RowNumber_I,ColumnNumber_I); 
+    imagesc(mat2gray(IMAGE)); colormap gray
+    sgtitle({['Iteration ',num2str(iter),' completed.']})
+    hold on 
+    drawnow
 
 end
 end
