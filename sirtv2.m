@@ -24,7 +24,9 @@ L_gammas = length(gammas);
 L_thetas = length(thetas);
 f = rand(RowNumber_I*ColumnNumber_I,1);
 errors = zeros(1,n_iter);
-A = (spalloc(numel(PROJECTIONS),RowNumber_I*ColumnNumber_I,numel(PROJECTIONS)*RowNumber_I*ColumnNumber_I));
+sparsity_ratio = 2/RowNumber_I;
+n_eqn = numel(PROJECTIONS);
+A = (spalloc(n_eqn,RowNumber_I*ColumnNumber_I,numel(PROJECTIONS)*RowNumber_I*ColumnNumber_I*sparsity_ratio));
 
 Deltas = zeros(size(f));
 Counter = Deltas;
@@ -87,13 +89,15 @@ for angle = 1:L_thetas
         LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
         W = zeros(RowNumber_I*ColumnNumber_I,1);
         W(LEXI) = weights;
-
-        A(L_gammas*(angle-1)+ray,:) = sparse(W); 
+    
+        index = L_gammas*(angle-1)+ray;
+        A(index,:) = W; 
 
         [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),1);
         Deltas = Deltas + delta_f;
         Counter = Counter + ~(delta_f==0);
     end
+    disp([num2str(index/n_eqn*100),'% completed.'])
 end
 toc
 
