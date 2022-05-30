@@ -85,6 +85,7 @@ for iter = 1:n_iter
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
+
             [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),1);
             Deltas = Deltas + delta_f;
             Counter = Counter + ~(delta_f==0);
@@ -110,4 +111,6 @@ for iter = 1:n_iter
     end
 
 end
+sgtitle([])
+title(axes,{'SIRT Reconstuction',['#Iterations: ',num2str(n_iter)]})
 end
