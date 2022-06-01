@@ -93,7 +93,7 @@ for iter = 1:n_iter
     end
 
     DELTA_f = Deltas ./ Counter;
-    f = f + DELTA_f;
+    f = f + .5*DELTA_f;
     IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
 
     if show_plot 
