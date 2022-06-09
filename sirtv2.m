@@ -93,9 +93,6 @@ for angle = 1:L_thetas
         index = L_gammas*(angle-1)+ray;
         A(index,:) = W; 
 
-        [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),1);
-        Deltas = Deltas + delta_f;
-        Counter = Counter + ~(delta_f==0);
     end
     disp([num2str(index/n_eqn*100),'% completed.'])
 end
@@ -108,6 +105,7 @@ alpha = 2/norm(A'*A,'fro');
 for iter = 1:n_iter
 
     f = f - alpha*A'*(A*f-PROJECTIONS);
+    f(f<0) = 0;
     IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
     errors(iter) = reconstruction_error(Original_Image,IMAGE);
 

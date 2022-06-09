@@ -86,14 +86,15 @@ for iter = 1:n_iter
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
 
-            [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),1);
+            [~, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),0.001);
             Deltas = Deltas + delta_f;
-            Counter = Counter + ~(delta_f==0);
+%             Counter = Counter + ~(delta_f==0);
         end
     end
 
-    DELTA_f = Deltas ./ Counter;
-    f = f + .5*DELTA_f;
+    DELTA_f = Deltas ;
+    f = f + DELTA_f;
+    f(f<0) = 0;
     IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
 
     if show_plot 

@@ -21,15 +21,19 @@ X_grid = left_end : right_end;
 Y_grid = X_grid;
 thetas = deg2rad(0:projection_angle_step_size:360-projection_angle_step_size); 
 gammas = deg2rad(-0.5*FOV:angle_between_detectors:0.5*FOV); 
+
 L_gammas = length(gammas);
 L_thetas = length(thetas);
 f = rand(RowNumber_I*ColumnNumber_I,1);
+mixed_gammas = ray_optimization(gammas);
+mixed_idx = ray_optimization(1:L_gammas);
 
 for iter = 1:n_iter
     for angle = 1:L_thetas
         theta = thetas(angle);
         for ray = 1:L_gammas
-            gamma = gammas(ray);   
+            gamma = mixed_gammas(ray);  
+            ray_idx = mixed_idx(ray);
             %%
             % Creating intersection vectors for each angle using the equation
             % _t_ = cos($$ \  \theta $$)  _x_  +  sin($$ \  \theta $$)  _y_
@@ -82,7 +86,8 @@ for iter = 1:n_iter
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
-            [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),0.5);
+            [f, ~, ~] = update_eqn(W,f,PROJECTIONS(ray_idx, angle),.1);
+            f(f<0) = 0;
 
         end
     end

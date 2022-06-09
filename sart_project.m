@@ -1,4 +1,4 @@
-function [A] = sart_matrix(I,L_detector, N_detectors, projection_angle_step_size, source2det_dist, use_window)
+function [PROJECTIONS] = sart_project(I,L_detector, N_detectors, projection_angle_step_size, source2det_dist)
 %% Parameter checks
 if size(I,1)*sqrt(2) > source2det_dist
 error('Phantom does not fit between source and detector!')
@@ -24,7 +24,7 @@ L_thetas = length(thetas);
 %% PROJECTIONS matrix to store the projection values:
 % A matrix that is going to store the projection values are formed here
 % with rows representing beams and columns representing projection angles.
-A = zeros(length(gammas)*length(thetas),M^2);
+PROJECTIONS = zeros(length(gammas),length(thetas));
 
 %% Main Loop
 % There are 2 loops passing through each beam and angle to compute the
@@ -41,38 +41,24 @@ for angle = 1:L_thetas
         intersect_y = ((D*sin(gamma) - intersect_x * cos(theta+gamma)) / sin(theta+gamma));
         delta_s = sqrt((intersect_x(1)-intersect_x(2))^2+(intersect_y(1)-intersect_y(2))^2);
 
-        %%
         INTERSECTS_all = [intersect_x' intersect_y'];
         INTERSECTS_all = sortrows(uniquetol(INTERSECTS_all,'ByRows',1e-10));
-        INTERSECTS_all = INTERSECTS_all(INTERSECTS_all(:,1)>left_end & ...
-        INTERSECTS_all(:,1)<right_end & ...
-        INTERSECTS_all(:,2)>left_end & INTERSECTS_all(:,2)<right_end,:);
-        intersect_x = INTERSECTS_all(:,1)';
-        intersect_y = INTERSECTS_all(:,2)';
-
-        %% Bilinear interpolation variables
-        x1 = right_end - floor(intersect_y) ;
-        y1 = right_end + floor(intersect_x) ;
-
-        %% Select window 
-        if use_window 
-            win = hamming(length(intersect_x));
-        else
-            win = ones(size(intersect_x));
+        INTERSECTS_all = INTERSECTS_all(INTERSECTS_all(:,1)>left_end & INTERSECTS_all(:,1)<right_end & INTERSECTS_all(:,2)>left_end & INTERSECTS_all(:,2)<right_end,:);
+        intersect_x = INTERSECTS_all(:,1);
+        intersect_y = INTERSECTS_all(:,2);
+        if size(INTERSECTS_all,1) == 1 || size(INTERSECTS_all,1) == 0
+        PROJECTIONS(ray,angle) = 0;
+        continue
         end
 
-
-        %% Fill matrix A with bilinear interpolation
-        for idx = 1:length(intersect_x)
-            if x1(idx) > 0 && y1(idx) > 0 && x1(idx) < right_end && y1(idx) < right_end
-               point = [intersect_x(idx) intersect_y(idx)];
-               [pixels, given_point_idx, f_interp, t, u] = find_closest_pixels_interpolate(X_grid, point, I);
-               A((angle-1)*L_gammas+ray,pixels(4,1)+(pixels(4,2)-1)*M) = win(idx)*delta_s*(1-t)*(1-u) + A((angle-1)*L_gammas+ray,pixels(4,1)+(pixels(4,2)-1)*M);
-               A((angle-1)*L_gammas+ray,pixels(3,1)+(pixels(3,2)-1)*M) = win(idx)*delta_s*(t)*(1-u) + A((angle-1)*L_gammas+ray,pixels(3,1)+(pixels(3,2)-1)*M);
-               A((angle-1)*L_gammas+ray,pixels(2,1)+(pixels(2,2)-1)*M) = win(idx)*delta_s*(1-t)*(u) + A((angle-1)*L_gammas+ray,pixels(2,1)+(pixels(2,2)-1)*M);
-               A((angle-1)*L_gammas+ray,pixels(1,1)+(pixels(1,2)-1)*M) = win(idx)*delta_s*(t)*(u) + A((angle-1)*L_gammas+ray,pixels(1,1)+(pixels(1,2)-1)*M);
-            end
-        end
+      %% Write Projections
+      intersect_x = intersect_x(2:(end-1)); % Discard the end points 
+      intersect_y = intersect_y(2:(end-1));
+      interpolated_points = zeros(size(intersect_x));
+      for point = 1:length(intersect_x) 
+          [~, ~, f_interp, ~, ~] = find_closest_pixels_interpolate(X_grid,[intersect_x(point) intersect_y(point)],I);
+          interpolated_points(point) = f_interp; 
+      end
+      PROJECTIONS(ray,angle) = sum(interpolated_points) * delta_s;
     end
-end
 end
