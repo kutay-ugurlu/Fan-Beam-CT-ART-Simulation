@@ -3,9 +3,9 @@
 % Outputs : Image
 
 function [IMAGE, errors] = binary_weighted_art(RowNumber_I, ColumnNumber_I, PROJECTIONS, ...
-    L_detector, source2det_dist, n_iter, show_plot, Original_Image, patience, axes)
+    L_detector, source2det_dist, n_iter, show_plot, Original_Image, patience, alpha, threshold, axes)
 
-if nargin<10
+if nargin<12
     axes = gca;
 end
 
@@ -27,6 +27,8 @@ gammas = deg2rad(-0.5*FOV:angle_between_detectors:0.5*FOV);
 L_gammas = length(gammas);
 L_thetas = length(thetas);
 f = rand(RowNumber_I*ColumnNumber_I,1);
+mixed_gammas = ray_optimization(gammas);
+mixed_idx = ray_optimization(1:L_gammas);
 
 for iter = 1:n_iter
     if mod(n_iter,10) == 0
@@ -35,7 +37,8 @@ for iter = 1:n_iter
     for angle = 1:L_thetas
         theta = thetas(angle);
         for ray = 1:L_gammas
-            gamma = gammas(ray);   
+            gamma = mixed_gammas(ray);   
+            ray_idx = mixed_idx(ray);
             %%
             % Creating intersection vectors for each angle using the equation
             % _t_ = cos($$ \  \theta $$)  _x_  +  sin($$ \  \theta $$)  _y_
@@ -80,18 +83,10 @@ for iter = 1:n_iter
             % Hence, if block above is added.
             midpoints_x = midpoints_x(2:end);
             midpoints_y = midpoints_y(2:end); 
-            
-            %% Now off-center intersections are to be discarded
-            x_idx = ismembertol(midpoints_x, X_centers,0.5);
-            y_idx = ismembertol(midpoints_y, Y_centers,0.5);
-            both_idx = x_idx & y_idx;
-
-            if sum(both_idx) == 0 
-                continue 
-            end
-            
+                
             %% Now update weights
-            weights = both_idx;
+            weights(weights<=threshold) = 0;
+            weights(weights>threshold) = 1;
 
             %% The pixels that beam passes through are found.
             row_pixel_indices = right_end - floor(midpoints_y);
@@ -100,7 +95,8 @@ for iter = 1:n_iter
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
-            [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray, angle),0.5);
+            [f, delta_f, ~] = update_eqn(W,f,PROJECTIONS(ray_idx, angle), alpha);
+            f(f<0) = 0;
         end
     end
     %% Reshape and plot

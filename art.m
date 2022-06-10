@@ -2,9 +2,10 @@
 % Inputs : Size of the image, Projection matrix.
 % Outputs : Image
 
-function [IMAGE, errors] = art(RowNumber_I, ColumnNumber_I, PROJECTIONS, L_detector, source2det_dist, n_iter, show_plot, Original_Image, patience, axes)
+function [IMAGE, errors] = art(RowNumber_I, ColumnNumber_I, ...
+    PROJECTIONS, L_detector, source2det_dist, n_iter, show_plot, Original_Image, patience, alpha, axes)
 
-if nargin<10
+if nargin<11
     axes = gca;
 end
 
@@ -86,7 +87,7 @@ for iter = 1:n_iter
             LEXI = pixel_to_lexicographic_index(PIXELS(:,1),PIXELS(:,2),RowNumber_I,ColumnNumber_I);
             W = zeros(RowNumber_I*ColumnNumber_I,1);
             W(LEXI) = weights;
-            [f, ~, ~] = update_eqn(W,f,PROJECTIONS(ray_idx, angle),.1);
+            [f, ~, ~] = update_eqn(W,f,PROJECTIONS(ray_idx, angle),alpha);
             f(f<0) = 0;
 
         end

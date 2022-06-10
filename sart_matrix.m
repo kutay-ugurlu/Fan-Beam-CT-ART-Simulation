@@ -30,25 +30,32 @@ A = zeros(length(gammas)*length(thetas),M^2);
 % There are 2 loops passing through each beam and angle to compute the
 % projection value. First loop iterates on angle values and the second loop
 % interates on beams.
+ray_idx = 1;
 for angle = 1:L_thetas
     theta = thetas(angle);
     for ray = 1:L_gammas
         gamma = gammas(ray);   
+        
         %% Creating intersection vectors for each angle using the equation
         % D sin(gamma) = x cos(theta+gamma) + y sin(theta+gamma)
         intersect_x_with_grid = ((D*sin(gamma) - Y_grid * sin(theta+gamma)) / cos(theta+gamma));
-        intersect_x = linspace(min(intersect_x_with_grid),max(intersect_x_with_grid),M);
-        intersect_y = ((D*sin(gamma) - intersect_x * cos(theta+gamma)) / sin(theta+gamma));
-        delta_s = sqrt((intersect_x(1)-intersect_x(2))^2+(intersect_y(1)-intersect_y(2))^2);
+        intersect_y_with_grid = ((D*sin(gamma) - X_grid * cos(theta+gamma)) / sin(theta+gamma));
 
         %%
-        INTERSECTS_all = [intersect_x' intersect_y'];
+        INTERSECTS_all = [[X_grid' intersect_y_with_grid'];[intersect_x_with_grid' Y_grid']];
         INTERSECTS_all = sortrows(uniquetol(INTERSECTS_all,'ByRows',1e-10));
         INTERSECTS_all = INTERSECTS_all(INTERSECTS_all(:,1)>left_end & ...
         INTERSECTS_all(:,1)<right_end & ...
         INTERSECTS_all(:,2)>left_end & INTERSECTS_all(:,2)<right_end,:);
         intersect_x = INTERSECTS_all(:,1)';
         intersect_y = INTERSECTS_all(:,2)';
+        if isempty(intersect_x)
+            ray_idx = ray_idx + 1 ;
+            continue
+        end
+        intersect_x = linspace(min(intersect_x),max(intersect_x),2*M);
+        intersect_y = ((D*sin(gamma) - intersect_x * cos(theta+gamma)) / sin(theta+gamma));
+        delta_s = sqrt((intersect_x(1)-intersect_x(2))^2+(intersect_y(1)-intersect_y(2))^2);
 
         %% Bilinear interpolation variables
         x1 = right_end - floor(intersect_y) ;
@@ -61,18 +68,17 @@ for angle = 1:L_thetas
             win = ones(size(intersect_x));
         end
 
-
+        dummy_mat = zeros(length(X_grid));
         %% Fill matrix A with bilinear interpolation
         for idx = 1:length(intersect_x)
-            if x1(idx) > 0 && y1(idx) > 0 && x1(idx) < right_end && y1(idx) < right_end
-               point = [intersect_x(idx) intersect_y(idx)];
-               [pixels, given_point_idx, f_interp, t, u] = find_closest_pixels_interpolate(X_grid, point, I);
-               A((angle-1)*L_gammas+ray,pixels(4,1)+(pixels(4,2)-1)*M) = win(idx)*delta_s*(1-t)*(1-u) + A((angle-1)*L_gammas+ray,pixels(4,1)+(pixels(4,2)-1)*M);
-               A((angle-1)*L_gammas+ray,pixels(3,1)+(pixels(3,2)-1)*M) = win(idx)*delta_s*(t)*(1-u) + A((angle-1)*L_gammas+ray,pixels(3,1)+(pixels(3,2)-1)*M);
-               A((angle-1)*L_gammas+ray,pixels(2,1)+(pixels(2,2)-1)*M) = win(idx)*delta_s*(1-t)*(u) + A((angle-1)*L_gammas+ray,pixels(2,1)+(pixels(2,2)-1)*M);
-               A((angle-1)*L_gammas+ray,pixels(1,1)+(pixels(1,2)-1)*M) = win(idx)*delta_s*(t)*(u) + A((angle-1)*L_gammas+ray,pixels(1,1)+(pixels(1,2)-1)*M);
-            end
+           point = [intersect_x(idx) intersect_y(idx)];
+           [min_idx_x, min_idx_y,t11,t12,t21,t22, ~] = find_closest_pixels_interpolate(X_grid, point, dummy_mat);
+           A(ray_idx,min_idx_x(1)+(min_idx_y(1)-1)*M) = win(idx)*delta_s*t11 + A((angle-1)*L_gammas+ray,min_idx_x(1)+(min_idx_y(1)-1)*M);
+           A(ray_idx,min_idx_x(1)+(min_idx_y(2)-1)*M) = win(idx)*delta_s*t12 + A((angle-1)*L_gammas+ray,min_idx_x(1)+(min_idx_y(2)-1)*M);
+           A(ray_idx,min_idx_x(2)+(min_idx_y(1)-1)*M) = win(idx)*delta_s*t21 + A((angle-1)*L_gammas+ray,min_idx_x(2)+(min_idx_y(1)-1)*M);
+           A(ray_idx,min_idx_x(2)+(min_idx_y(2)-1)*M) = win(idx)*delta_s*t22 + A((angle-1)*L_gammas+ray,min_idx_x(2)+(min_idx_y(2)-1)*M);
         end
+    ray_idx = ray_idx + 1 ;
     end
 end
 end

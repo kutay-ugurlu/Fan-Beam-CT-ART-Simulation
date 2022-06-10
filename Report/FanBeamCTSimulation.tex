@@ -150,53 +150,51 @@ Although SIRT exhibits a good performance when it is compared to ART, it require
 
 In this section, the computer implementation of the scientific background explained in Section \nameref{sec:theory} is going to be described.
 
+\subsection{Projection}
 \begin{algorithm}[h]
-	\caption{Projection algorithm for ART \& SIRT}
-	\begin{algorithmic}
-	\Procedure{Projection}{$I,N_D, L_D, L_{SD}$} 
-	\State Projections = ZEROS
-	\State Form the image Grid $[X(:),Y(:)]$
-	   \For{Projection angle $\beta$}
-	   	  \For{Fan beam angle $\gamma$}\\
-			\Comment{$Line = F(x,y,\beta,\gamma)$}
-			\State Calculate x intersection
-			\State Calculate y intersection
-			\State Sort \Comment{Regular grid}
-			\State Find distance between intersections\Comment{weights}
-			\State Find the corresponding pixels
-			\State Calculate projection \Comment{$weights \cdot I(pixels)$}
-			\State Store in projection matrix
-		  \EndFor
-	   \EndFor
-	   \State \textbf{return Projection matrix}
-	\EndProcedure
-	\end{algorithmic}
-	\label{alg:projection}
+\caption{Projection algorithm}
+\begin{algorithmic}
+\Procedure{PROJECTIONS}{$I,N_D, L_D, L_{SD}$} 
+   \For{Projection angle $\beta$}
+		 \For{Fan beam angle $\gamma$}\\
+		\State Calculate x intersection
+		\State Calculate y intersection
+		\State Sort \Comment{Regular grid}
+		\State Find distance between intersections \Comment{weights}
+		\State Find the corresponding pixels
+		\State Calculate projection \Comment{$weights \cdot I(pixels)$}
+		\State Store in projection matrix
+	  \EndFor
+   \EndFor
+   \State \textbf{return Projection matrix}
+\EndProcedure
+\label{alg:projection}
+\end{algorithmic}
 \end{algorithm}
 
-The matrix returned by the procedure defined in Algorithm \ref{alg:projection} is used in Algorithm \ref{alg:backprojection} to reconstruct the image. 
 
+\subsection{Reconstruction}
+
+\subsubsection{ART and Modified ART}
 \begin{algorithm}[h]
-	\caption{Back projection algorithm}
+	\caption{ART Algorithm}
 	\begin{algorithmic}
-	\Procedure{Projection}{$I,N_D, L_D, L_{SD}$} 
-	\State Projections = ZEROS
-	\State Form the image Grid $[X(:),Y(:)]$
-	   \For{Projection angle $\beta$}
-	   	  \For{Fan beam angle $\gamma$}\\
-			\Comment{$Line = F(x,y,\beta,\gamma)$}
-			\State Calculate x intersection
-			\State Calculate y intersection
-			\State Sort \Comment{Regular grid}
-			\State Find distance between intersections\Comment{weights}
-			\State Find the corresponding pixels \Comment{Mid-points}
-			\State Sum projections in the pixels \Comment{$I(pixel) += projection$}
-		  \EndFor
-	   \EndFor
-	   \State \textbf{return Reconstructed Image}
-	\EndProcedure
+		\Procedure{ART}{$PROJECTIONS,N_D, L_D, L_{SD}$} 
+		\State Get the angle step size from Projections. 
+		\State Get the number of the beams from Projections. 
+		\State Set initial random guess $f^{(0)}$
+		   \For{Projection angle $\beta$}
+				 \For{Fan beam angle $\gamma$}\\
+				\Comment{$Line = F(x,y,\beta,\gamma)$}
+				\State Iteratively project the current solution on one of the hyperplanes defined by the ray equations.
+				\State Check the convergence to continue optimization.
+			  \EndFor
+		   \EndFor
+		   \State Reshape the solution vector to image. 
+		   \State \textbf{return IMAGE}
+		\EndProcedure
+	\label{alg:ART}
 	\end{algorithmic}
-	\label{alg:backprojection}
 \end{algorithm}
 
 The developed application implements the above algorithms in order to project and reconstruct the image. All components of the software and the Graphical User Interface is implemented in MATLAB(The MathWorks\textsuperscript{\textregistered}, Inc., Natick, Massachusetts, United States.) The guide to how to use the graphical user interface can be achieved in the README section of the following repository: \href{https://github.com/kutay-ugurlu/Fan-Beam-Computerized-Tomography-Simulation}{github.com/kutay-ugurlu/Fan-Beam-Computerized-Tomography-Simulation}.
