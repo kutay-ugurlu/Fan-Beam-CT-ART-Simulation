@@ -15,7 +15,7 @@
 \usepackage{algpseudocodex}
 \usepackage{cleveref}
 \usepackage{diagbox}
-%\usepackage{multicol}
+\usepackage{multicol}
 %\usepackage{cite}
 \usepackage[
 style=ieee,
@@ -121,7 +121,7 @@ These steps can be summarized in the following update equation:
 where f is the flattened image, $\alpha$ is the relaxation parameter, $w_j$ is the weights of the hyperplane defined by the $j_{th}$ ray and $p_j$ is the projection value of the corresponding ray. 
 \\
 \\
-However, images reconstructed with this procedure exhibit a very noisy salt and pepper characteristic. To decrease the effect of this behavior without the changing the algorithm, one can optimize the order of selection of rays so that the projections hyperplanes are far from each other. This resulting in better quality pixel updates hence improves the convergence of the algorithm.
+However, images reconstructed with this procedure exhibit a very noisy salt and pepper characteristic. To decrease the effect of this behavior without the changing the algorithm, one can optimize the order of selection of rays so that the projections hyperplanes are far from each other. This resulting in better quality pixel updates hence improves the convergence of the algorithm. This approach is utilized in the ART algorithm by default, by selecting hyperplanes that are separated by $\frac{FOV}{2}$ consecutively.
 
 \subsection{Sequential Iterative Reconstruction Technique}
 
@@ -134,6 +134,7 @@ Using gradient descent, the update formula becomes:
 	f^{(k+1)} = f^{(k)} - \alpha A^T(Ax^{(k)}-b)
 \end{equation}
 
+In this equation, $A^T$ represents the back projection operator, since it is the adjoint operator of A. The reconstruction is performed by backprojecting the error to image space and updating the estimate by taking the difference of the error and the current guess hoping that error is going to be zeroed out, and the updates are going to stop. 
 The authors of \cite*{dong2020accelerated} states that for $0<\alpha<\frac{2}{||A^TA||}$, the convergence of the algorithm is guaranteed. 
 
 \subsection{Simultaneous Algebraic Reconstruction Technique}
@@ -145,6 +146,8 @@ Although SIRT exhibits a good performance when it is compared to ART, it require
 	\item The value of the continuous distribution of the image $\hat{f}$ is calculated by using the square-pyramid shaped bilinear elements with a support of 4 pixels.
 	\item The projections are found as the integrations of the image estimates along that line. 
 \end{enumerate}
+
+\newpage
 
 \section{Implementation} \label{sec:implementation}
 
@@ -172,7 +175,6 @@ In this section, the computer implementation of the scientific background explai
 \end{algorithmic}
 \end{algorithm}
 
-\newpage
 \subsection{Reconstruction}
 
 \begin{algorithm}[h]
@@ -186,6 +188,7 @@ In this section, the computer implementation of the scientific background explai
 				 \For{Fan beam angle $\gamma$}\\
 				\Comment{$Line = F(x,y,\beta,\gamma)$}
 				\State Iteratively project the current solution on one of the hyperplanes defined by the ray equations.
+				\State If Classical ART is utilized, the nonzero weights are replaced with ones. 
 				\State Check the convergence to continue optimization.
 			  \EndFor
 		   \EndFor
@@ -253,31 +256,74 @@ In this section, the computer implementation of the scientific background explai
 The developed application implements the above algorithms in order to project and reconstruct the image. All components of the software and the Graphical User Interface is implemented in MATLAB(The MathWorks\textsuperscript{\textregistered}, Inc., Natick, Massachusetts, United States.) The guide to how to use the graphical user interface can be achieved in the README section of the following repository: \href{https://github.com/kutay-ugurlu/Fan-Beam-CT-ART-Simulation}{github.com/kutay-ugurlu/Fan-Beam-CT-ART-Simulation}.
 
 \subsection{Early Stopping}
-Since these algorithms use heuristic approaches or local optimizers, error metrics can diverge in some situations. To overcome this problem, an early stopping script is developed. This program keeps track of the current cumulated error vector that contains error metrics for previous iterations and takes an input called \textbf{patience}, which describes the number of iterations to wait for the algorithm to reduce the error in the next iteration. When this patience limit is achieved, algorithm outputs the reconstruction having the minimum relative error defined in Eqn. \ref{eq:relativeerror}, where $\hat{x}$ represents the reconstructed image and $x$ represents the ground truth.  
+Since these algorithms use heuristic approaches or local optimizers, error metrics can diverge in some situations. To overcome this problem, an early stopping script is developed. This program keeps track of the current cumulated error vector that contains error metrics for previous iterations and takes an input called \textbf{patience}, which describes the number of iterations to wait for the algorithm to reduce the error in the next iteration. When this patience limit is achieved, algorithm outputs the reconstruction having the minimum relative error defined in Eqn. \ref{eqn:relativeerror}, where $\hat{x}$ represents the reconstructed image and $x$ represents the ground truth.  
 
 \begin{equation}
-	Relative Error = \frac{||\hat{x} - x||}{||x||}
+	Relative Error = \frac{||\hat{x} - x||}{||x||} \label{eqn:relativeerror}
 \end{equation}
-
-\newpage
 
 \section{Results}\label{sec:results}
 
+The experiments comparing the performances of the aforesaid algorithms are conducted using the following set of parameters: 
+
+\begin{multicols}{2}
+    \begin{itemize}
+        \item $N_{iter}$ = 200
+        \item $L_{detector}$ = 200
+        \item $N_{detectors}$ = 100
+        \item Source-Detector\newline distance = 200
+        \item Projection angle \newline step size = $2^\circ$
+        \item Relaxation $\alpha$ = 0.2
+        \item Patience: 50 iterations
+    \end{itemize}
+    \end{multicols}
+
+For phantom Lena, the original phantom is cropped to have 80 by 80 image. Considering that the number of pixels is increased by 2.56, number of rays in this case is increased to 200 to compensate for the increased image size. 
+
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.4\textwidth, height=0.2\textwidth]{images/CT.jpg}
-	\caption{First EMI Scanner \cite{emict}}\label{fig:CT1010}
+	\includegraphics[width=0.4\textwidth, height=0.5\textwidth]{images/classical_art.png}
+	\caption{Classical ART Reconstructions}\label{fig:cart}
 \end{figure}
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.4\textwidth, height=0.2\textwidth]{images/CT.jpg}
-	\caption{First EMI Scanner \cite{emict}}\label{fig:CT1010}
+	\includegraphics[width=0.4\textwidth, height=0.5\textwidth]{images/modifiedart.png}
+	\caption{Modified ART Reconstructions}\label{fig:mart}
+\end{figure}
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.4\textwidth, height=0.5\textwidth]{images/sirt.png}
+	\caption{SIRT Reconstructions}\label{fig:sirt}
 \end{figure}
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.4\textwidth, height=0.2\textwidth]{images/CT.jpg}
-	\caption{First EMI Scanner \cite{emict}}\label{fig:CT1010}
+	\includegraphics[width=0.4\textwidth, height=0.5\textwidth]{images/sart.png}
+	\caption{SART Reconstructions}\label{fig:sart}
 \end{figure}
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline 
+		\diagbox{Phantom}{Algorithm} & ART & {Modified \newline ART} & SIRT & SART \\ 
+		\hline 
+		SheppLogan 	& 0.62 & 0.93 & 0.70 & 0.58 \\ 
+		Square 		& 0.87 	& 1 & 0.99 & 0.72 \\ 
+		Lena 		& 0 	& 0 & 0 & 0.42 \\ 
+		\hline 
+		\end{tabular}
+	\caption{\label{tab:beams}SSIM Index \cite*{wang2004image} for different reconstruction algorithms}
+\end{table}
+
+\newpage
+\section{Discussion}
+
+Figures \Cref*{fig:cart,fig:mart,fig:sirt,fig:sart} shows the reconstruction error in each iteration in the relative error metric defined by Eqn. \ref*{eqn:relativeerror}. In addition, the Structural Similarity(SSIM) \cite*{wang2004image} metric is utilized to perform a quantitative comparison between the reconstructed and ground-truth images.
+\\
+\\
+\subsubsection*{Classical and Modified ART}
+It is known that classical ART implementation introduces salt and pepper patterned noise to the reconstruction images. In Figure \ref*{fig:cart} one can observe the high frequency noise clearly in SheppLogan and Square phantoms. Along with that, it can be observed that the relative error decreases in the first few iterations however it starts to increase afterwards. Furthermore, it is also obvious from the number of iterations (with 50 patience iterations) that the reconstructions diverges from the original result. This may be attributed to the fact that binary weighting strategy of classical ART algorithm constantly introduces noise due to the lack of quantification of contribution from different pixels. When we look at the Modified ART algorithm's results, on the other hand, we observe that algorithm has run for 200 iterations and exhibited a constant decreased in the error metric, resulting in a relative error around 0.05 for the first two phantoms. However, for higher dimensional solution spaces such as phantom Lena, this strategy does not work as good as it is in the remaining ones. Although the error minimization shows a steady decrease, the relative improvement with respect to the first iteration is remarkably low, being around 1\%. Nevertheless, the performance of the reconstruction is qualitatively moderate to human eye.  
 
 \newpage
 \printbibliography

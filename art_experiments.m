@@ -4,7 +4,7 @@ paths = ["Phantoms/SheppLogan.mat","Phantoms/square.mat","Phantoms/lena_cropped.
 phantom_names = ["SheppLogan","Square","Lena"];
 errors = {}; recs = {};
 L_det = 200;
-N_det = 100;
+N_dets = [100,100,200];
 angle_step = 2;
 source2det_dist = 200;
 n_iter = 200;
@@ -18,8 +18,8 @@ figure
 for phantom_path = paths
     I = struct2array(load(phantom_path));
     N = size(I,1);
-    highq_proj = radon_project(phantom_path,L_det,N_det,angle_step,source2det_dist);
     i = i+1;
+    highq_proj = radon_project(phantom_path,L_det,N_dets(i),angle_step,source2det_dist);
     L_det = 200;
     N_det = 100;
     angle_step = 2;
@@ -78,3 +78,5 @@ for phantom_path = paths
     title('Relative Error')
 end
 sgtitle('Modified ART Reconstructions')
+save('art_ssims.mat','art_ssims')
+save('bart_ssims.mat','bart_ssims')

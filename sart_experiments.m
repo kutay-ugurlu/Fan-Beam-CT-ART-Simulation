@@ -40,4 +40,4 @@ for phantom_path = paths
     title('Relative Error')
     SSIMs(end+1) = ssim(sart_rec,I);
 end
-sgtitle('Classical SIRT Reconstructions')
+sgtitle('Classical SART Reconstructions')
