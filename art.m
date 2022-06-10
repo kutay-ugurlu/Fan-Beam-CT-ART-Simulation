@@ -30,6 +30,9 @@ mixed_gammas = ray_optimization(gammas);
 mixed_idx = ray_optimization(1:L_gammas);
 
 for iter = 1:n_iter
+    if mod(n_iter,10) == 0
+        display(['At iteration ',num2str(iter)])
+    end
     for angle = 1:L_thetas
         theta = thetas(angle);
         for ray = 1:L_gammas
