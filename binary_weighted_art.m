@@ -112,8 +112,13 @@ for iter = 1:n_iter
 
     errors(end+1) = reconstruction_error(Original_Image,IMAGE);
 
+    if errors(end) == min(errors)
+        IMAGE_best = IMAGE;
+    end
+
     if early_stopper(errors,patience)
         display(['Early stopping at iteration ,',num2str(iter)])
+        IMAGE = IMAGE_best;
         return
     end
 

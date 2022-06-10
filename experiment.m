@@ -13,6 +13,7 @@ highq_proj = radon_project(phantom_path,L_det,N_det,angle_step,source2det_dist);
 f1 = figure;
 [art_rec, art_error] = art(Npix,Npix,highq_proj,L_det,source2det_dist,n_iter,1,I,20,alpha);
 f2 = figure;
+threshold = 0;
 [bart_rec, bart_error] = binary_weighted_art(Npix,Npix,highq_proj,L_det,source2det_dist,n_iter,1,I,20,alpha,threshold);
 f3 = figure;
 [SIRT_mat, sirt_rec, sirt_error] = sirtv2(Npix,Npix,highq_proj,L_det,source2det_dist,n_iter,1,I,20);
@@ -40,12 +41,11 @@ end
 close all; clear; clc;
 I = struct2array(load('C:\Users\Kutay\Desktop\Fan-Beam-CT-ART-Simulation\Phantoms\SheppLogan.mat'));
 L_det = 200;
-n_iter = 50;
+n_iter = 200;
 N_det = 200;
 angle_step = 1;
 source2det_dist = 200;
 use_window = 1;
-if_relax = 0;
-A = sart_matrix(I,L_det,N_det,angle_step,source2det_dist,use_window);
-Projections = radon_project('Phantoms/SheppLogan.mat',L_det,N_det,angle_step,source2det_dist);
-Image_back = sart_reconstruct(size(I,1),A,if_relax,n_iter,Projections);
+if_relax = 1;
+[errors, Image_back] = sart('Phantoms/square',L_det,N_det,angle_step,source2det_dist,use_window,if_relax,n_iter);
+

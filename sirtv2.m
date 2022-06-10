@@ -94,7 +94,6 @@ for angle = 1:L_thetas
         A(index,:) = W; 
 
     end
-    disp([num2str(index/n_eqn*100),'% completed.'])
 end
 toc
 
@@ -108,9 +107,15 @@ for iter = 1:n_iter
     f(f<0) = 0;
     IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
     errors(iter) = reconstruction_error(Original_Image,IMAGE);
+    
+    if errors(end) == min(errors)
+        IMAGE_best = IMAGE;
+    end
 
     if early_stopper(errors,patience)
-    display(['Early stopping at iteration ,',num2str(iter)])
+        display(['Early stopping at iteration ',num2str(iter)])
+        errors = errors(1:find(errors,1,'last'));
+        IMAGE = IMAGE_best;
     return
     end
 
@@ -122,6 +127,7 @@ for iter = 1:n_iter
     end
 
 end
+errors = errors(1:find(errors,1,'last'));
 
 end
 
