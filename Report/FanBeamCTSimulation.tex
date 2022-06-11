@@ -322,8 +322,19 @@ For phantom Lena, the original phantom is cropped to have 80 by 80 image. Consid
 Figures \Cref*{fig:cart,fig:mart,fig:sirt,fig:sart} shows the reconstruction error in each iteration in the relative error metric defined by Eqn. \ref*{eqn:relativeerror}. In addition, the Structural Similarity(SSIM) \cite*{wang2004image} metric is utilized to perform a quantitative comparison between the reconstructed and ground-truth images.
 \\
 \\
-\subsubsection*{Classical and Modified ART}
+\subsection{Classical and Modified ART}
 It is known that classical ART implementation introduces salt and pepper patterned noise to the reconstruction images. In Figure \ref*{fig:cart} one can observe the high frequency noise clearly in SheppLogan and Square phantoms. Along with that, it can be observed that the relative error decreases in the first few iterations however it starts to increase afterwards. Furthermore, it is also obvious from the number of iterations (with 50 patience iterations) that the reconstructions diverges from the original result. This may be attributed to the fact that binary weighting strategy of classical ART algorithm constantly introduces noise due to the lack of quantification of contribution from different pixels. When we look at the Modified ART algorithm's results, on the other hand, we observe that algorithm has run for 200 iterations and exhibited a constant decreased in the error metric, resulting in a relative error around 0.05 for the first two phantoms. However, for higher dimensional solution spaces such as phantom Lena, this strategy does not work as good as it is in the remaining ones. Although the error minimization shows a steady decrease, the relative improvement with respect to the first iteration is remarkably low, being around 1\%. Nevertheless, the performance of the reconstruction is qualitatively moderate to human eye.  
+\\
+\\
+\subsection{ART and SIRT}
+It is observed that, for same number of iterations, the final error metric SIRT can achieve is higher than that of ART, \textit{i.e.} SIRT requires more iterations to converge where modified ART does, hence it verifies the fact stated in \cite*{dong2020accelerated} that SIRT may need approximately 200 hundred iterations to converge.  On the other hand, SIRT updates seems to provide better updates in the earlier iterations than ART. This is because it utilizes the all equations to at once to calculate the update on an image. However, it comes with the trade off that it has less sharp images than ART. 
+\\
+\\
+\subsection{SART and SIRT}
+SART algorithm treats the digital image as a continuous distribution of the image and projections as discrete ray sums of bilinear-interpolated estimates of image samples on the rays \cite*{andersen1984sart}. In other words, it transforms the basis from traditional pixel basis to bilinear element basis. Therefore, we observe a low-pass effect in the reconstructed images, since the algorithm aims to reconstruct a smooth distribution. This explains why the reconstructed phantoms are blurred in all cases. Overall, it seems to approximate the image visually well and can be utilized in cases where the projection data is limited and details in the image are not a concern.
+\\
+\\
+\subsection{Lena image}
 
 \newpage
 \printbibliography
