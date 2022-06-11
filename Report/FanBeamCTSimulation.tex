@@ -131,7 +131,7 @@ However, images reconstructed with this procedure exhibit a very noisy salt and 
 It is known that there is no single point intersections in the ART hyperplanes when the projections are corrupted by Poisson noise \cite*{dong2020accelerated}.  
 In 1970, Gilbert \textit{et al.} in \cite*{gilbert1972iterative} proposed SIRT algorithm to overcome this effect by applying the computed pixel updates simultaneously, rather than equation by equation. 
 
-In SIRT, the system $Ax=b$ where A is the projection matrix, is solved by minimizing the $\mathcal{L_2}$ norm cost function $$J = ||Ax-b||_2^2$$
+In SIRT, the system $Ax=b$ where A is the projection matrix, is solved by minimizing the $L_2$ norm cost function $$J = ||Ax-b||_2^2$$
 Using gradient descent, the update formula becomes:
 \begin{equation}
 	f^{(k+1)} = f^{(k)} - \alpha A^T(Ax^{(k)}-b)
@@ -338,7 +338,7 @@ SART algorithm treats the digital image as a continuous distribution of the imag
 \\
 \\
 \subsection{Lena phantom}
-It is observed that reconstructions of phantom Lena has poor performance in terms of SSIM Index in Table \ref*{tab:ssim}. However, for modified ART and SIRT reconstructions, the qualitative visual performance of the reconstructions are satisfactory. On the contrary, the blurred SART reconstruction has a remarkably higher SSIM Index. This may arise from the fact that the predefined error metrics to decide where to stop in the optimization process may not be optimal, but instead suboptimal. In other words, $\mathcal{L_2}$ norm utilizing relative error metrics may not be the best option to evaluate the performance of the reconstruction. This becomes more clear when we compare the Relative Error and SSIM Index of the SIRT and SART reconstructions. Although there is 13\% difference in the relative metric, the structural similarity difference is about half a range. All in all, a visual (or qualitative) comparison should accompany the numerical metrics to achieve the best reconstructions. 
+It is observed that reconstructions of phantom Lena has poor performance in terms of SSIM Index in Table \ref*{tab:ssim}. However, for modified ART and SIRT reconstructions, the qualitative visual performance of the reconstructions are satisfactory. On the contrary, the blurred SART reconstruction has a remarkably higher SSIM Index. This may arise from the fact that the predefined error metrics to decide where to stop in the optimization process may not be optimal, but instead suboptimal. In other words, ${\mathcal{L}}_2$ norm utilizing relative error metrics may not be the best option to evaluate the performance of the reconstruction. This becomes more clear when we compare the Relative Error and SSIM Index of the SIRT and SART reconstructions. Although there is 13\% difference in the relative metric, the structural similarity difference is about half a range. All in all, a visual (or qualitative) comparison should accompany the numerical metrics to achieve the best reconstructions. 
 \\
 \\
 \subsection{Conclusion and Future work}
