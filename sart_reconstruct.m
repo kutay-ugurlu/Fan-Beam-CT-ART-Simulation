@@ -28,11 +28,13 @@ for i = 1:n_iter
     return
     end
     
-    if if_show
-        imagesc(imrotate(mat2gray(IMAGE),90)), colormap gray
-        title(['Iteration #',num2str(i),'/',num2str(n_iter)])
+    if if_show 
+        imagesc(axes,IMAGE); colormap(axes,"gray")
+        title(axes,{['Iteration ',num2str(iter),' completed.']})
+        hold on 
         drawnow
     end
+    
 end
 errors = errors(1:find(errors,1,'last'));
 end

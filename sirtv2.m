@@ -120,10 +120,10 @@ for iter = 1:n_iter
     end
 
     if show_plot 
-    imagesc(IMAGE,'Parent',axes); colormap gray
-    sgtitle({['Iteration ',num2str(iter),' completed.']})
-    hold on 
-    drawnow
+        imagesc(axes,IMAGE); colormap(axes,"gray")
+        title(axes,{['Iteration ',num2str(iter),' completed.']})
+        hold on 
+        drawnow
     end
 
 end
