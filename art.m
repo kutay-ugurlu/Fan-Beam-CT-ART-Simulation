@@ -100,8 +100,8 @@ for iter = 1:n_iter
     IMAGE = mat2gray(reshape(f,RowNumber_I,ColumnNumber_I)); 
 
     if show_plot 
-        imagesc(IMAGE,'Parent',axes); colormap gray
-        sgtitle({['Iteration ',num2str(iter),' completed.']})
+        imagesc(axes,IMAGE); colormap gray
+        title(axes,{['Iteration ',num2str(iter),' completed.']})
         hold on 
         drawnow
     end
