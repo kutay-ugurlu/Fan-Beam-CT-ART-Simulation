@@ -1,18 +1,21 @@
 function [IMAGE, errors] = sart_reconstruct(Image_size, A, if_relax, n_iter, PROJECTIONS, Original_Image, if_show, patience, axes)
 
-if if_relax
-    alpha = 1.95/norm(A'*A,"fro");
-else
-    alpha = 1;
+if nargin < 9
+    axes = gca;
 end
 
-% PROJECTIONS = PROJECTIONS';
+if if_relax
+    alpha = 2/norm(A'*A,"fro");
+else
+    alpha = 1e-4;
+end
+
 PROJECTIONS = PROJECTIONS(:);
 f = zeros(Image_size^2,1);
-% L_proj = size(A,1);
 errors = zeros(1,n_iter);
 for iter = 1:n_iter
     f = f - alpha*A'*(A*f-PROJECTIONS);
+%     f = sart_update(A,f,PROJECTIONS);
     f(f<0) = 0;
     IMAGE = (reshape(f,Image_size,Image_size));
     errors(iter) = reconstruction_error(Original_Image ,IMAGE);

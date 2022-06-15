@@ -1,4 +1,7 @@
 function [Image_back, errors] = sart(phantom_name,L_det,N_det,angle_step,source2det_dist,use_window, if_relax, n_iter, if_show, patience, axes)
+if nargin < 11
+    axes = gca;
+end
 [PROJECTIONS, ~] = radon_project(phantom_name,L_det, N_det, angle_step, source2det_dist);
 I = struct2array(load(phantom_name));
 A = sart_matrix(I,L_det,N_det,angle_step,source2det_dist,use_window);
